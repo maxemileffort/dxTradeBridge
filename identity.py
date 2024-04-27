@@ -43,12 +43,12 @@ class Identity:
             'Authorization': 'DXAPI '+self.authToken,
         }
         # order_base_id = uuid.uuid1()
-        if limit_price != 0:
+        if limit_price and limit_price != 0:
             orderLeg1 = {
                         "orderCode": f"{id}-1",
                         "type": "LIMIT",
                         "instrument": f"{symbol}",
-                        "quantity": f"{quantity}",
+                        "quantity": f"{quantity / self.get_price_increment(symbol)}",
                         "positionEffect": "OPEN",
                         "side": f"{order_side}",
                         "limitPrice": f"{limit_price}",
@@ -200,4 +200,5 @@ if __name__ == "__main__":
     identity.login()
     # identity.get_price_increment('BTCUSD')
     # identity.get_positions()
-    # identity.buy(0.50, 0, 0, MARKET, "BTCUSD", BTCUSD)
+    identity.buy(0.01, 0, 0, None, "BTCUSD")
+    identity.close_trade("BTCUSD")
