@@ -48,7 +48,7 @@ class Identity:
                         "orderCode": f"{id}-1",
                         "type": "LIMIT",
                         "instrument": f"{symbol}",
-                        "quantity": f"{quantity / self.get_price_increment(symbol)}",
+                        "quantity": f"{quantity * self.get_lot_size(symbol)}",
                         "positionEffect": "OPEN",
                         "side": f"{order_side}",
                         "limitPrice": f"{limit_price}",
@@ -59,7 +59,7 @@ class Identity:
                         "orderCode": f"{id}-1",
                         "type": "MARKET",
                         "instrument": f"{symbol}",
-                        "quantity": f"{quantity / self.get_price_increment(symbol)}",
+                        "quantity": f"{quantity * self.get_lot_size(symbol)}",
                         "positionEffect": "OPEN",
                         "side": f"{order_side}",
                         "tif": "GTC"
@@ -91,10 +91,21 @@ class Identity:
         if tp != 0:
             orders.append(orderLeg3)
 
-        payload = {
-            "orders": orders,
-            "contingencyType": "IF-THEN"
-        }
+        if len(orders) > 1:
+            payload = {
+                "orders": orders,
+                "contingencyType": "IF-THEN"
+            }
+        else:
+            payload = {
+                "orderCode": f"{id}-1",
+                "type": "MARKET",
+                "instrument": f"{symbol}",
+                "quantity": f"{quantity * self.get_lot_size(symbol)}",
+                "positionEffect": "OPEN",
+                "side": f"{order_side}",
+                "tif": "GTC"
+            }
         print("PAYLOAD", payload)
         response = self.s.post(url, headers=headers, data=json.dumps(payload).replace(" ", ""))
         if response.status_code != 200:
@@ -140,7 +151,7 @@ class Identity:
         else:
             print("list instruments response:", response.status_code, response.text)
 
-    def get_price_increment(self, symbol):
+    def get_lot_size(self, symbol):
         url = f'{self.server}/dxsca-web/instruments/query?symbols={symbol}'
         headers = {
             'content-type': 'application/json; charset=UTF-8',
@@ -149,8 +160,9 @@ class Identity:
         response = self.s.get(url, headers=headers)
         if response.status_code == 200:
             instr_info = json.loads(response.text)
-            print(float('%.05f' % instr_info['instruments'][0]['priceIncrement']))
-            return float('%.05f' % instr_info['instruments'][0]['priceIncrement'])
+            print('instr_info:', instr_info)
+            print(float('%.05f' % instr_info['instruments'][0]['lotSize']))
+            return float('%.05f' % instr_info['instruments'][0]['lotSize'])
         else:
             print("list instruments response:", response.status_code, response.text)
 
@@ -168,23 +180,29 @@ class Identity:
             print("positions response:", response.status_code, response.text)
 
     def get_position_id(self, symbol):
-        positions = self.get_positions()
-
+        positions = self.get_positions()['positions']
+        if len(positions) == 0:
+            print('no positions!')
+            return ''
+        print(positions)
         for p in positions:
+            print(p)
             if p['symbol'] == symbol:
                 return p['positionCode']
         
         return ''
 
-    def buy(self, quantity, tp, sl, price, symbol):
-        self.open_trade(BUY, quantity, tp,sl, price, symbol)
+    def buy(self, quantity, tp, sl, price, symbol, id):
+        self.open_trade(BUY, quantity, tp,sl, price, symbol, id)
 
-    def sell(self, quantity, tp,sl,price, symbol):
-        self.open_trade(SELL, quantity, tp,sl, price, symbol)
+    def sell(self, quantity, tp,sl,price, symbol, id):
+        self.open_trade(SELL, quantity, tp,sl, price, symbol, id)
 
     
 if __name__ == "__main__":
     from dotenv import load_dotenv
+    from datetime import datetime
+    import time
     import os
 
     # Load environment variables
@@ -198,7 +216,18 @@ if __name__ == "__main__":
 
     identity = Identity(username, password, server, accountId)
     identity.login()
-    # identity.get_price_increment('BTCUSD')
+    # identity.get_lot_size('EURUSD')
     # identity.get_positions()
-    identity.buy(0.01, 0, 0, None, "BTCUSD")
+    now_str = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    time.sleep(1)
+    identity.buy(0.01, 0, 0, None, "LTCUSD", "LTCTEST"+now_str)
+    time.sleep(1)
+    identity.close_trade("LTCUSD")
+    time.sleep(1)
+    identity.buy(0.01, 0, 0, None, "BTCUSD", "BTCTEST"+now_str)
+    time.sleep(1)
     identity.close_trade("BTCUSD")
+    time.sleep(1)
+    identity.buy(0.01, 0, 0, None, "EURUSD", "EUTEST"+now_str)
+    time.sleep(1)
+    identity.close_trade("EURUSD")
