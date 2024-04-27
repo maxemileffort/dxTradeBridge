@@ -17,7 +17,7 @@ def home():
     return "Hello, World!"
 
 @app.route('/receive_request', methods=['POST'])
-@limiter.limit()
+@limiter.limit("1 per second")
 def receive_request():
     data = request.json
     # Create an instance of Identity for each request to ensure authentication
