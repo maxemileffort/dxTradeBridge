@@ -12,9 +12,18 @@ limiter = Limiter(
 )
 
 @app.route("/")
-@limiter.limit("5 per minute")  # Specific limit for this endpoint
+@limiter.limit("5 per minute")  
 def home():
     return "Hello, World!"
+
+@app.route("/check_payload", methods=['POST'])
+@limiter.limit("5 per minute")  
+def home():
+    # Read raw text data from the request and split by comma
+    raw_data = request.data.decode('utf-8')
+    data_list = raw_data.strip().split(',')
+    return jsonify({"message": "payload check.", "details": data_list}), 200
+    
 
 @app.route('/receive_request', methods=['POST'])
 @limiter.limit("1 per second")  
@@ -23,7 +32,7 @@ def receive_request():
     raw_data = request.data.decode('utf-8')
     data_list = raw_data.strip().split(',')
     if len(data_list) < 4:
-        return jsonify({"message": "missing key trade details.", "details": response}), 200
+        return jsonify({"message": "missing key trade details.", "details": raw_data}), 200
 
     # Parse the data into variables
     username, password, server, account_id, symbol, action = data_list[:6]

@@ -97,15 +97,8 @@ class Identity:
                 "contingencyType": "IF-THEN"
             }
         else:
-            payload = {
-                "orderCode": f"{id}-1",
-                "type": "MARKET",
-                "instrument": f"{symbol}",
-                "quantity": f"{quantity * self.get_lot_size(symbol)}",
-                "positionEffect": "OPEN",
-                "side": f"{order_side}",
-                "tif": "GTC"
-            }
+            payload = orders[0]
+
         print("PAYLOAD", payload)
         response = self.s.post(url, headers=headers, data=json.dumps(payload).replace(" ", ""))
         if response.status_code != 200:
