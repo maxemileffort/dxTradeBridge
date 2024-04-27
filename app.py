@@ -1,9 +1,23 @@
 from flask import Flask, request, jsonify
 from identity import Identity  # Assuming Identity class is in a separate file called identity.py
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 app = Flask(__name__)
+# Set up rate limiting
+limiter = Limiter(
+    app,
+    key_func=get_remote_address,
+    default_limits=["1 per second"]
+)
+
+@app.route("/")
+@limiter.limit("5 per minute")  # Specific limit for this endpoint
+def home():
+    return "Hello, World!"
 
 @app.route('/receive_request', methods=['POST'])
+@limiter.limit()
 def receive_request():
     data = request.json
     # Create an instance of Identity for each request to ensure authentication
