@@ -71,7 +71,7 @@ class Identity:
                     "quantity": "0",
                     "positionEffect": "CLOSE",
                     "side": "SELL" if order_side == 'BUY' else 'BUY',
-                    "stopPrice": f"{sl}",
+                    "stopPrice": f"{sl * self.get_price_increment(symbol)}",
                     "tif": "GTC"
         }
         orderLeg3 = {
@@ -81,7 +81,7 @@ class Identity:
                     "quantity": "0",
                     "positionEffect": "CLOSE",
                     "side": "SELL" if order_side == 'BUY' else 'BUY',
-                    "limitPrice": f"{tp}",
+                    "limitPrice": f"{tp * self.get_price_increment(symbol)}",
                     "tif": "GTC"
         }
 
@@ -164,7 +164,22 @@ class Identity:
             print(float('%.05f' % instr_info['instruments'][0]['lotSize']))
             return float('%.05f' % instr_info['instruments'][0]['lotSize'])
         else:
-            print("list instruments response:", response.status_code, response.text)
+            print("lot size response:", response.status_code, response.text)
+
+    def get_price_increment(self, symbol):
+        url = f'{self.server}/dxsca-web/instruments/query?symbols={symbol}'
+        headers = {
+            'content-type': 'application/json; charset=UTF-8',
+            'Authorization': 'DXAPI '+self.authToken,
+        }
+        response = self.s.get(url, headers=headers)
+        if response.status_code == 200:
+            instr_info = json.loads(response.text)
+            print('instr_info:', instr_info)
+            print(float('%.05f' % instr_info['instruments'][0]['priceIncrement']))
+            return float('%.05f' % instr_info['instruments'][0]['priceIncrement'])
+        else:
+            print("lot size response:", response.status_code, response.text)
 
     def get_positions(self):
         url = f'{self.server}/dxsca-web/accounts/{self.account_id}/positions'

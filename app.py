@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from identity import Identity  # Assuming Identity class is in a separate file called identity.py
+from identity import Identity  
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
@@ -26,10 +26,11 @@ def receive_request():
         return jsonify({"message": "missing key trade details.", "details": response}), 200
 
     # Parse the data into variables
-    username, password, server, account_id, symbol, action, order_side, quantity, tp, sl, trade_id = data_list
+    username, password, server, account_id, symbol, action = data_list[:6]
+    order_side, quantity, tp, sl, trade_id = data_list[6:]
 
     # Convert numeric data from strings to appropriate types
-    quantity = int(quantity) 
+    quantity = float(quantity) 
     tp = float(tp)
     sl = float(sl)
     
