@@ -17,30 +17,40 @@ def home():
     return "Hello, World!"
 
 @app.route('/receive_request', methods=['POST'])
-@limiter.limit("1 per second")
+@limiter.limit("1 per second")  
 def receive_request():
-    data = request.json
+    # Read raw text data from the request and split by comma
+    raw_data = request.data.decode('utf-8')
+    data_list = raw_data.strip().split(',')
+
+    # Parse the data into variables
+    username, password, server, account_id, symbol, action, order_side, quantity, tp, sl, trade_id = data_list
+
+    # Convert numeric data from strings to appropriate types
+    quantity = int(quantity) 
+    tp = float(tp)
+    sl = float(sl)
+    
     # Create an instance of Identity for each request to ensure authentication
-    identity = Identity(data['username'], data['password'], "", data["accountId"])
+    identity = Identity(username, password, server, account_id)
     identity.login()
     
     # Determine the action to perform based on the request data
-    if data['action'].lower() == 'open':
-        try:
-            if data['order_side'].upper() == 'BUY':
-                identity.buy(quantity=data['quantity'], tp=data['tp'], sl=data['sl'],
-                             price=data['price'], symbol=data['symbol'], instrument_id=data['instrument_id'])
-            elif data['order_side'].upper() == 'SELL':
-                identity.sell(quantity=data['quantity'], tp=data['tp'], sl=data['sl'],
-                              price=data['price'], symbol=data['symbol'], instrument_id=data['instrument_id'])
-            return jsonify({"message": "Trade opened successfully"}), 200
-        except Exception as e:
-            return jsonify({"error": str(e)}), 400
+    action = action.lower()
+    order_side = order_side.upper()
+    try:
+        if action == 'open':
+            if order_side == 'BUY':
+                response = identity.buy(quantity=quantity, tp=tp, sl=sl,
+                                        price=None, symbol=symbol, id=trade_id)
+            elif order_side == 'SELL':
+                response = identity.sell(quantity=quantity, tp=tp, sl=sl,
+                                         price=None, symbol=symbol, id=trade_id)
+            return jsonify({"message": "Trade opened successfully", "details": response}), 200
 
-    elif data['action'].lower() == 'close':
-        try:
-            identity.close_trade(position_id=data['position_id'], quantity=data['quantity'],
-                                 price=data['price'], symbol=data['symbol'], instrument_id=data['instrument_id'])
-            return jsonify({"message": "Trade closed successfully"}), 200
-        except Exception as e:
-            return jsonify({"error": str(e)}), 400
+        elif action == 'close':
+            response = identity.close_trade(symbol=symbol)
+            return jsonify({"message": "Trade closed successfully", "details": response}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400

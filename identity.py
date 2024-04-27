@@ -17,7 +17,7 @@ class Identity:
         self.s = requests.Session()
 
     def login(self):
-        url = "https://trade.voyagemarkets.net/dxsca-web/login"
+        url = f"{self.server}/dxsca-web/login"
         payload = json.dumps({
             "username": self.username,
             "password": self.password,
@@ -36,16 +36,16 @@ class Identity:
             print("Login failed with status code:", response.status_code)
 
 
-    def open_trade(self, order_side, quantity, tp, sl, limit_price, symbol):
-        url = f"https://trade.voyagemarkets.net/dxsca-web/accounts/{self.account_id}/orders"
+    def open_trade(self, order_side, quantity, tp, sl, limit_price, symbol, id):
+        url = f"{self.server}/dxsca-web/accounts/{self.account_id}/orders"
         headers = {
             'content-type': 'application/json; charset=UTF-8',
             'Authorization': 'DXAPI '+self.authToken,
         }
-        order_base_id = uuid.uuid1()
+        # order_base_id = uuid.uuid1()
         if limit_price != 0:
             orderLeg1 = {
-                        "orderCode": f"{order_base_id}-1",
+                        "orderCode": f"{id}-1",
                         "type": "LIMIT",
                         "instrument": f"{symbol}",
                         "quantity": f"{quantity}",
@@ -56,7 +56,7 @@ class Identity:
             }
         else:
             orderLeg1 = {
-                        "orderCode": f"{order_base_id}-1",
+                        "orderCode": f"{id}-1",
                         "type": "MARKET",
                         "instrument": f"{symbol}",
                         "quantity": f"{quantity / self.get_price_increment(symbol)}",
@@ -65,7 +65,7 @@ class Identity:
                         "tif": "GTC"
             }
         orderLeg2 = {
-                    "orderCode": f"{order_base_id}-2",
+                    "orderCode": f"{id}-2",
                     "type": "STOP",
                     "instrument": f"{symbol}",
                     "quantity": "0",
@@ -75,7 +75,7 @@ class Identity:
                     "tif": "GTC"
         }
         orderLeg3 = {
-                    "orderCode": f"{order_base_id}-3",
+                    "orderCode": f"{id}-3",
                     "type": "LIMIT",
                     "instrument": f"{symbol}",
                     "quantity": "0",
@@ -102,8 +102,34 @@ class Identity:
         else:
             print("Order executed successfully!")
 
+    def close_trade(self, symbol):
+        url = f"{self.server}/dxsca-web/accounts/{self.account_id}/orders"
+        headers = {
+            'content-type': 'application/json; charset=UTF-8',
+            'Authorization': 'DXAPI '+self.authToken,
+        }
+
+        payload = {
+            "legs": [{
+                "instrument": symbol,
+                "positionCode": self.get_position_id(symbol),
+                "positionEffect": "CLOSE",
+                "ratioQuantity": 1
+            }],
+            "orderType": "MARKET",
+            "timeInForce": "GTC"
+        }
+
+        print("PAYLOAD", payload)
+
+        response = self.s.post(url, headers=headers, data=json.dumps(payload).replace(" ", ""))
+        if response.status_code != 200:
+            print("market order response:", response.status_code, response.text)
+        else:
+            print("Order executed successfully!")
+
     def list_instruments(self):
-        url = 'https://trade.voyagemarkets.net/dxsca-web/instruments/query?symbols=*'
+        url = f'{self.server}/dxsca-web/instruments/query?symbols=*'
         headers = {
             'content-type': 'application/json; charset=UTF-8',
             'Authorization': 'DXAPI '+self.authToken,
@@ -115,7 +141,7 @@ class Identity:
             print("list instruments response:", response.status_code, response.text)
 
     def get_price_increment(self, symbol):
-        url = f'https://trade.voyagemarkets.net/dxsca-web/instruments/query?symbols={symbol}'
+        url = f'{self.server}/dxsca-web/instruments/query?symbols={symbol}'
         headers = {
             'content-type': 'application/json; charset=UTF-8',
             'Authorization': 'DXAPI '+self.authToken,
@@ -129,7 +155,7 @@ class Identity:
             print("list instruments response:", response.status_code, response.text)
 
     def get_positions(self):
-        url = f'https://trade.voyagemarkets.net/dxsca-web/accounts/{self.account_id}/positions'
+        url = f'{self.server}/dxsca-web/accounts/{self.account_id}/positions'
         headers = {
             'content-type': 'application/json; charset=UTF-8',
             'Authorization': 'DXAPI '+self.authToken,
@@ -137,8 +163,18 @@ class Identity:
         response = self.s.get(url, headers=headers)
         if response.status_code == 200:
             print(json.loads(response.text))
+            return (json.loads(response.text))
         else:
             print("positions response:", response.status_code, response.text)
+
+    def get_position_id(self, symbol):
+        positions = self.get_positions()
+
+        for p in positions:
+            if p['symbol'] == symbol:
+                return p['positionCode']
+        
+        return ''
 
     def buy(self, quantity, tp, sl, price, symbol):
         self.open_trade(BUY, quantity, tp,sl, price, symbol)
@@ -160,7 +196,7 @@ if __name__ == "__main__":
     server = os.getenv('DX_SERVER')
     accountId = os.getenv('DX_ACCOUNT')
 
-    identity = Identity(username, password, '', accountId)
+    identity = Identity(username, password, server, accountId)
     identity.login()
     # identity.get_price_increment('BTCUSD')
     # identity.get_positions()
