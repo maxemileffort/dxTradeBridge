@@ -18,7 +18,7 @@ def home():
 
 @app.route("/check_payload", methods=['POST'])
 @limiter.limit("5 per minute")  
-def home():
+def check_payload():
     # Read raw text data from the request and split by comma
     raw_data = request.data.decode('utf-8')
     data_list = raw_data.strip().split(',')
@@ -66,3 +66,6 @@ def receive_request():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+
+if __name__ == '__main__':
+    app.run(debug=True)
