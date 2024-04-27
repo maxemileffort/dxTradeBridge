@@ -22,6 +22,8 @@ def receive_request():
     # Read raw text data from the request and split by comma
     raw_data = request.data.decode('utf-8')
     data_list = raw_data.strip().split(',')
+    if len(data_list) < 4:
+        return jsonify({"message": "missing key trade details.", "details": response}), 200
 
     # Parse the data into variables
     username, password, server, account_id, symbol, action, order_side, quantity, tp, sl, trade_id = data_list
