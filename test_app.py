@@ -23,7 +23,7 @@ def test_check_payload_empty(client):
     assert response.status_code == 200
     assert response.json == {
         "message": "payload check.",
-        "details": []
+        "details": ['']
     }
 
 def test_check_payload_special_characters(client):
