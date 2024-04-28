@@ -153,7 +153,7 @@ class Identity:
         response = self.s.get(url, headers=headers)
         if response.status_code == 200:
             instr_info = json.loads(response.text)
-            print('instr_info:', instr_info)
+            # print('instr_info:', instr_info)
             print(float('%.05f' % instr_info['instruments'][0]['lotSize']))
             return float('%.05f' % instr_info['instruments'][0]['lotSize'])
         else:
@@ -168,7 +168,7 @@ class Identity:
         response = self.s.get(url, headers=headers)
         if response.status_code == 200:
             instr_info = json.loads(response.text)
-            print('instr_info:', instr_info)
+            # print('instr_info:', instr_info)
             print(float('%.05f' % instr_info['instruments'][0]['priceIncrement']))
             return float('%.05f' % instr_info['instruments'][0]['priceIncrement'])
         else:
@@ -182,7 +182,7 @@ class Identity:
         }
         response = self.s.get(url, headers=headers)
         if response.status_code == 200:
-            print(json.loads(response.text))
+            # print(json.loads(response.text))
             return (json.loads(response.text))
         else:
             print("positions response:", response.status_code, response.text)
