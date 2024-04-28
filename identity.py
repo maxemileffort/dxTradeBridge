@@ -8,7 +8,8 @@ SELL = 'SELL'
 
 class Identity:
     def __init__(self, username, password, server, accountId):
-        self.account_id = accountId.replace(':', '%3A')
+        self.url_account_id = accountId.replace(':', '%3A')
+        self.account_id = accountId
         self.username = username
         self.fullUsername = ""
         self.password = password
@@ -36,8 +37,8 @@ class Identity:
             print("Login failed with status code:", response.status_code)
 
 
-    def open_trade(self, order_side, quantity, tp, sl, limit_price, symbol, id):
-        url = f"{self.server}/dxsca-web/accounts/{self.account_id}/orders"
+    def open_trade(self, order_side, quantity, tp, sl, limit_price, symbol, id, current_price):
+        url = f"{self.server}/dxsca-web/accounts/{self.url_account_id}/orders"
         headers = {
             'content-type': 'application/json; charset=UTF-8',
             'Authorization': 'DXAPI '+self.authToken,
@@ -64,26 +65,38 @@ class Identity:
                         "side": f"{order_side}",
                         "tif": "GTC"
             }
-        orderLeg2 = {
-                    "orderCode": f"{id}-2",
-                    "type": "STOP",
-                    "instrument": f"{symbol}",
-                    "quantity": "0",
-                    "positionEffect": "CLOSE",
-                    "side": "SELL" if order_side == 'BUY' else 'BUY',
-                    "stopPrice": f"{sl * self.get_price_increment(symbol)}",
-                    "tif": "GTC"
-        }
-        orderLeg3 = {
-                    "orderCode": f"{id}-3",
-                    "type": "LIMIT",
-                    "instrument": f"{symbol}",
-                    "quantity": "0",
-                    "positionEffect": "CLOSE",
-                    "side": "SELL" if order_side == 'BUY' else 'BUY',
-                    "limitPrice": f"{tp * self.get_price_increment(symbol)}",
-                    "tif": "GTC"
-        }
+        if sl and sl != 0:
+            long_sl_target = current_price - sl * self.get_price_increment(symbol)
+            short_sl_target = current_price + sl * self.get_price_increment(symbol)
+            sl_send = long_sl_target if order_side == 'BUY' else short_sl_target
+            orderLeg2 = {
+                        "orderCode": f"{id}-2",
+                        "type": "STOP",
+                        "instrument": f"{symbol}",
+                        "quantity": "0",
+                        "positionEffect": "CLOSE",
+                        "side": "SELL" if order_side == 'BUY' else 'BUY',
+                        "stopPrice": f"{sl_send}",
+                        "tif": "GTC"
+            }
+        else:
+            orderLeg2 = {}
+        if tp and tp != 0:
+            long_tp_target = current_price + tp * self.get_price_increment(symbol)
+            short_tp_target = current_price - tp * self.get_price_increment(symbol)
+            tp_send = long_tp_target if order_side == 'BUY' else short_tp_target
+            orderLeg3 = {
+                        "orderCode": f"{id}-3",
+                        "type": "LIMIT",
+                        "instrument": f"{symbol}",
+                        "quantity": "0",
+                        "positionEffect": "CLOSE",
+                        "side": "SELL" if order_side == 'BUY' else 'BUY',
+                        "limitPrice": f"{tp_send}",
+                        "tif": "GTC"
+            }
+        else:
+            orderLeg3 = {}
 
         orders = [orderLeg1]
         if sl != 0:
@@ -107,7 +120,7 @@ class Identity:
             print("Order executed successfully!")
 
     def close_trade(self, symbol):
-        url = f"{self.server}/dxsca-web/accounts/{self.account_id}/orders"
+        url = f"{self.server}/dxsca-web/accounts/{self.url_account_id}/orders"
         headers = {
             'content-type': 'application/json; charset=UTF-8',
             'Authorization': 'DXAPI '+self.authToken,
@@ -175,7 +188,7 @@ class Identity:
             print("lot size response:", response.status_code, response.text)
 
     def get_positions(self):
-        url = f'{self.server}/dxsca-web/accounts/{self.account_id}/positions'
+        url = f'{self.server}/dxsca-web/accounts/{self.url_account_id}/positions'
         headers = {
             'content-type': 'application/json; charset=UTF-8',
             'Authorization': 'DXAPI '+self.authToken,
@@ -199,7 +212,7 @@ class Identity:
                 return p['positionCode']
         
         return ''
-
+    
     def buy(self, quantity, tp, sl, price, symbol, id):
         self.open_trade(BUY, quantity, tp,sl, price, symbol, id)
 
@@ -224,18 +237,18 @@ if __name__ == "__main__":
 
     identity = Identity(username, password, server, accountId)
     identity.login()
-    # identity.get_lot_size('EURUSD')
+    # identity.get_current_price('EURUSD')
     # identity.get_positions()
     now_str = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-    time.sleep(1)
-    identity.buy(0.01, 0, 0, None, "LTCUSD", "LTCTEST"+now_str)
-    time.sleep(1)
-    identity.close_trade("LTCUSD")
-    time.sleep(1)
-    identity.buy(0.01, 0, 0, None, "BTCUSD", "BTCTEST"+now_str)
-    time.sleep(1)
-    identity.close_trade("BTCUSD")
-    time.sleep(1)
-    identity.buy(0.01, 0, 0, None, "EURUSD", "EUTEST"+now_str)
-    time.sleep(1)
-    identity.close_trade("EURUSD")
+    # time.sleep(1)
+    # identity.buy(0.01, 20, 40, None, "LTCUSD", "LTCTEST"+now_str)
+    # time.sleep(1)
+    # identity.close_trade("LTCUSD")
+    # time.sleep(1)
+    # identity.buy(0.01, 20, 40, None, "BTCUSD", "BTCTEST"+now_str)
+    # time.sleep(1)
+    # identity.close_trade("BTCUSD")
+    # time.sleep(1)
+    # identity.buy(0.01, 20, 40, None, "EURUSD", "EUTEST"+now_str)
+    # time.sleep(1)
+    # identity.close_trade("EURUSD")
