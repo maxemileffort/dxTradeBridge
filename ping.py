@@ -1,6 +1,11 @@
 import requests
 
-url = 'https://dxtradebridge.onrender.com'
+def ping():
 
-r = requests.get(url)
-r.status_code, r.text
+    url = 'https://dxtradebridge.onrender.com'
+
+    r = requests.get(url)
+    r.status_code, r.text
+
+if __name__ == "__main__":
+    ping()

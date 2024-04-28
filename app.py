@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from identity import Identity  
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+import time
 
 app = Flask(__name__)
 # Set up rate limiting
@@ -45,7 +46,10 @@ def receive_request():
     
     # Create an instance of Identity for each request to ensure authentication
     identity = Identity(username, password, server, account_id)
-    identity.login()
+    try:
+        identity.login()
+    except:
+        return jsonify({"message": "Auth unsuccessful", "details": ''}), 301
     
     # Determine the action to perform based on the request data
     action = action.lower()
@@ -53,14 +57,19 @@ def receive_request():
     try:
         if action == 'open':
             if order_side == 'BUY':
+                time.sleep(1)
                 response = identity.buy(quantity=quantity, tp=tp, sl=sl,
                                         price=None, symbol=symbol, id=trade_id)
             elif order_side == 'SELL':
+                time.sleep(1)
                 response = identity.sell(quantity=quantity, tp=tp, sl=sl,
                                          price=None, symbol=symbol, id=trade_id)
+            else:
+                raise ValueError().with_traceback()
             return jsonify({"message": "Trade opened successfully", "details": response}), 200
 
         elif action == 'close':
+            time.sleep(1)
             response = identity.close_trade(symbol=symbol)
             return jsonify({"message": "Trade closed successfully", "details": response}), 200
 
