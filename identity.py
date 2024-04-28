@@ -237,7 +237,6 @@ if __name__ == "__main__":
 
     identity = Identity(username, password, server, accountId)
     identity.login()
-    # identity.get_current_price('EURUSD')
     # identity.get_positions()
     now_str = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     # time.sleep(1)
