@@ -66,8 +66,21 @@ class Identity:
                         "side": f"{order_side}",
                         "tif": "GTC"
             }
+
+        decimal_places = {
+            'XAU' : '%.02f',
+            'XAG' : '%.03f',
+            'JPY' : '%.03f'
+        }
+
+        rounding_amt = '%.05f'
+
+        for d in decimal_places.keys():
+            if d in symbol:
+                rounding_amt = decimal_places[d]
+
         if sl and sl != 0:
-            sl_send = float('%.05f' % sl)
+            sl_send = float(rounding_amt % sl)
             orderLeg2 = {
                         "orderCode": f"{id}-2",
                         "type": "STOP",
@@ -234,11 +247,12 @@ if __name__ == "__main__":
     server = os.getenv('DX_SERVER')
     accountId = os.getenv('DX_ACCOUNT')
 
-    identity = Identity(username, password, server, accountId)
-    identity.login()
+    # identity = Identity(username, password, server, accountId)
+    # identity.login()
+    # time.sleep(1)
     # identity.get_positions()
-    time.sleep(1)
-    now_str = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    # time.sleep(1)
+    # now_str = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     # time.sleep(1)
     # identity.buy(0.01, 20, 40, None, "LTCUSD", "LTCTEST"+now_str, )
     # time.sleep(1)
@@ -248,6 +262,6 @@ if __name__ == "__main__":
     # time.sleep(1)
     # identity.close_trade("BTCUSD")
     # time.sleep(1)
-    identity.buy(0.01, 0, 0, None, "EURUSD", "EUTEST"+now_str)
-    time.sleep(1)
-    identity.close_trade("EURUSD")
+    # identity.buy(0.01, 0, 0, None, "EURUSD", "EUTEST"+now_str)
+    # time.sleep(1)
+    # identity.close_trade("EURUSD")
