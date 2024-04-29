@@ -51,8 +51,8 @@ def receive_request():
     identity = Identity(username, password, server, account_id)
     try:
         identity.login()
-    except:
-        return jsonify({"message": "Auth unsuccessful", "details": ''}), 301
+    except Exception as e:
+        return jsonify({"message": "Auth unsuccessful", "details": str(e)}), 301
     
     # Determine the action to perform based on the request data
     action = action.lower()
