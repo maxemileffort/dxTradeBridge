@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 from identity import Identity  
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-import time
+import time, sys
 
 app = Flask(__name__)
 # Set up rate limiting
@@ -32,7 +32,7 @@ def receive_request():
     # Read raw text data from the request and split by comma
     raw_data = request.data.decode('utf-8')
     data_list = raw_data.strip().split(',')
-    print(data_list)
+    print(data_list, file=sys.stdout)
     if len(data_list) < 4:
         return jsonify({"message": "missing key trade details.", "details": raw_data}), 200
 
