@@ -50,10 +50,10 @@ class Identity:
                         "orderCode": f"{id}-1",
                         "type": "LIMIT",
                         "instrument": f"{symbol}",
-                        "quantity": f"{qty_send}",
+                        "quantity": qty_send,
                         "positionEffect": "OPEN",
                         "side": f"{order_side}",
-                        "limitPrice": f"{limit_price}",
+                        "limitPrice": limit_price,
                         "tif": "GTC"
             }
         else:
@@ -61,7 +61,7 @@ class Identity:
                         "orderCode": f"{id}-1",
                         "type": "MARKET",
                         "instrument": f"{symbol}",
-                        "quantity": f"{qty_send}",
+                        "quantity": qty_send,
                         "positionEffect": "OPEN",
                         "side": f"{order_side}",
                         "tif": "GTC"
@@ -75,7 +75,7 @@ class Identity:
                         "quantity": f"{0}",
                         "positionEffect": "CLOSE",
                         "side": "SELL" if order_side == 'BUY' else 'BUY',
-                        "stopPrice": f"{sl_send}",
+                        "stopPrice": sl_send,
                         "tif": "GTC"
             }
         else:
@@ -86,10 +86,10 @@ class Identity:
                         "orderCode": f"{id}-3",
                         "type": "LIMIT",
                         "instrument": f"{symbol}",
-                        "quantity": f"{0}",
+                        "quantity": 0,
                         "positionEffect": "CLOSE",
                         "side": "SELL" if order_side == 'BUY' else 'BUY',
-                        "limitPrice": f"{tp_send}",
+                        "limitPrice": tp_send,
                         "tif": "GTC"
             }
         else:
