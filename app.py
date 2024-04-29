@@ -32,6 +32,7 @@ def receive_request():
     # Read raw text data from the request and split by comma
     raw_data = request.data.decode('utf-8')
     data_list = raw_data.strip().split(',')
+    print(data_list)
     if len(data_list) < 4:
         return jsonify({"message": "missing key trade details.", "details": raw_data}), 200
 
