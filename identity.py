@@ -37,7 +37,8 @@ class Identity:
             print("Login failed with status code:", response.status_code)
 
 
-    def open_trade(self, order_side, quantity, tp, sl, limit_price, symbol, id, current_price):
+    def open_trade(self, order_side, quantity, tp, sl, limit_price, symbol, id):
+        qty_send = quantity * self.get_lot_size(symbol)
         url = f"{self.server}/dxsca-web/accounts/{self.url_account_id}/orders"
         headers = {
             'content-type': 'application/json; charset=UTF-8',
@@ -49,7 +50,7 @@ class Identity:
                         "orderCode": f"{id}-1",
                         "type": "LIMIT",
                         "instrument": f"{symbol}",
-                        "quantity": f"{quantity * self.get_lot_size(symbol)}",
+                        "quantity": f"{qty_send}",
                         "positionEffect": "OPEN",
                         "side": f"{order_side}",
                         "limitPrice": f"{limit_price}",
@@ -60,20 +61,18 @@ class Identity:
                         "orderCode": f"{id}-1",
                         "type": "MARKET",
                         "instrument": f"{symbol}",
-                        "quantity": f"{quantity * self.get_lot_size(symbol)}",
+                        "quantity": f"{qty_send}",
                         "positionEffect": "OPEN",
                         "side": f"{order_side}",
                         "tif": "GTC"
             }
         if sl and sl != 0:
-            long_sl_target = current_price - sl * self.get_price_increment(symbol)
-            short_sl_target = current_price + sl * self.get_price_increment(symbol)
-            sl_send = long_sl_target if order_side == 'BUY' else short_sl_target
+            sl_send = float('%.05f' % sl)
             orderLeg2 = {
                         "orderCode": f"{id}-2",
                         "type": "STOP",
                         "instrument": f"{symbol}",
-                        "quantity": "0",
+                        "quantity": f"{0}",
                         "positionEffect": "CLOSE",
                         "side": "SELL" if order_side == 'BUY' else 'BUY',
                         "stopPrice": f"{sl_send}",
@@ -82,14 +81,12 @@ class Identity:
         else:
             orderLeg2 = {}
         if tp and tp != 0:
-            long_tp_target = current_price + tp * self.get_price_increment(symbol)
-            short_tp_target = current_price - tp * self.get_price_increment(symbol)
-            tp_send = long_tp_target if order_side == 'BUY' else short_tp_target
+            tp_send = float('%.05f' % tp)
             orderLeg3 = {
                         "orderCode": f"{id}-3",
                         "type": "LIMIT",
                         "instrument": f"{symbol}",
-                        "quantity": "0",
+                        "quantity": f"{0}",
                         "positionEffect": "CLOSE",
                         "side": "SELL" if order_side == 'BUY' else 'BUY',
                         "limitPrice": f"{tp_send}",
@@ -166,7 +163,7 @@ class Identity:
         response = self.s.get(url, headers=headers)
         if response.status_code == 200:
             instr_info = json.loads(response.text)
-            # print('instr_info:', instr_info)
+            print('instr_info:', instr_info)
             print(float('%.05f' % instr_info['instruments'][0]['lotSize']))
             return float('%.05f' % instr_info['instruments'][0]['lotSize'])
         else:
@@ -225,6 +222,7 @@ if __name__ == "__main__":
     from datetime import datetime
     import time
     import os
+    import yfinance as yf
 
     # Load environment variables
     load_dotenv()
@@ -238,9 +236,10 @@ if __name__ == "__main__":
     identity = Identity(username, password, server, accountId)
     identity.login()
     # identity.get_positions()
+    time.sleep(1)
     now_str = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     # time.sleep(1)
-    # identity.buy(0.01, 20, 40, None, "LTCUSD", "LTCTEST"+now_str)
+    # identity.buy(0.01, 20, 40, None, "LTCUSD", "LTCTEST"+now_str, )
     # time.sleep(1)
     # identity.close_trade("LTCUSD")
     # time.sleep(1)
@@ -248,6 +247,6 @@ if __name__ == "__main__":
     # time.sleep(1)
     # identity.close_trade("BTCUSD")
     # time.sleep(1)
-    # identity.buy(0.01, 20, 40, None, "EURUSD", "EUTEST"+now_str)
-    # time.sleep(1)
-    # identity.close_trade("EURUSD")
+    identity.buy(0.01, 0, 0, None, "EURUSD", "EUTEST"+now_str)
+    time.sleep(1)
+    identity.close_trade("EURUSD")

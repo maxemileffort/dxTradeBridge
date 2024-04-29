@@ -37,13 +37,14 @@ def receive_request():
 
     # Parse the data into variables
     username, password, server, account_id, symbol, action = data_list[:6]
-    order_side, quantity, tp, sl, trade_id, current_price = data_list[6:]
+    order_side, quantity, trade_id, lTp, lSl, sTp, sSl = data_list[6:]
 
     # Convert numeric data from strings to appropriate types
     quantity = float(quantity) 
-    tp = float(tp)
-    sl = float(sl)
-    current_price = float(current_price)
+    lTp = float(lTp)
+    lSl = float(lSl)
+    sTp = float(sTp)
+    sSl = float(sSl)
     
     # Create an instance of Identity for each request to ensure authentication
     identity = Identity(username, password, server, account_id)
@@ -59,14 +60,12 @@ def receive_request():
         if action == 'open':
             if order_side == 'BUY':
                 time.sleep(1)
-                response = identity.buy(quantity=quantity, tp=tp, sl=sl,
-                                        price=None, symbol=symbol, id=trade_id, 
-                                        current_price=current_price)
+                response = identity.buy(quantity=quantity, tp=lTp, sl=lSl,
+                                        price=None, symbol=symbol, id=trade_id)
             elif order_side == 'SELL':
                 time.sleep(1)
-                response = identity.sell(quantity=quantity, tp=tp, sl=sl,
-                                         price=None, symbol=symbol, id=trade_id, 
-                                         current_price=current_price)
+                response = identity.sell(quantity=quantity, tp=sTp, sl=sSl,
+                                         price=None, symbol=symbol, id=trade_id)
             else:
                 raise ValueError().with_traceback()
             return jsonify({"message": "Trade opened successfully", "details": response}), 200
