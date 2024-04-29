@@ -61,9 +61,13 @@ def receive_request():
         if action == 'open':
             if order_side == 'BUY':
                 time.sleep(1)
+                identity.close_trade(symbol=symbol)
+                time.sleep(1)
                 response = identity.buy(quantity=quantity, tp=lTp, sl=lSl,
                                         price=None, symbol=symbol, id=trade_id)
             elif order_side == 'SELL':
+                time.sleep(1)
+                identity.close_trade(symbol=symbol)
                 time.sleep(1)
                 response = identity.sell(quantity=quantity, tp=sTp, sl=sSl,
                                          price=None, symbol=symbol, id=trade_id)

@@ -208,7 +208,7 @@ class Identity:
         }
         response = self.s.get(url, headers=headers)
         if response.status_code == 200:
-            # print(json.loads(response.text))
+            print(json.loads(response.text))
             return (json.loads(response.text))
         else:
             print("positions response:", response.status_code, response.text)
@@ -248,10 +248,10 @@ if __name__ == "__main__":
     server = os.getenv('DX_SERVER')
     accountId = os.getenv('DX_ACCOUNT')
 
-    # identity = Identity(username, password, server, accountId)
-    # identity.login()
-    # time.sleep(1)
-    # identity.get_positions()
+    identity = Identity(username, password, server, accountId)
+    identity.login()
+    time.sleep(1)
+    identity.get_positions()
     # time.sleep(1)
     # now_str = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     # time.sleep(1)
