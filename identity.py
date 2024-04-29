@@ -113,6 +113,7 @@ class Identity:
         response = self.s.post(url, headers=headers, data=json.dumps(payload).replace(" ", ""))
         if response.status_code != 200:
             print("market order response:", response.status_code, response.text)
+            return json.dumps(response)
         else:
             print("Order executed successfully!")
 
@@ -139,6 +140,7 @@ class Identity:
         response = self.s.post(url, headers=headers, data=json.dumps(payload).replace(" ", ""))
         if response.status_code != 200:
             print("market order response:", response.status_code, response.text)
+            return json.dumps(response)
         else:
             print("Order executed successfully!")
 

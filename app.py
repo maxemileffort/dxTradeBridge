@@ -67,8 +67,6 @@ def receive_request():
                 time.sleep(1)
                 response = identity.sell(quantity=quantity, tp=sTp, sl=sSl,
                                          price=None, symbol=symbol, id=trade_id)
-            else:
-                raise ValueError().with_traceback()
             return jsonify({"message": "Trade opened successfully", "details": response}), 200
 
         elif action == 'close':
