@@ -3,5 +3,6 @@
 /.pytest_cache
 
 .env
+*.csv
 
 test.ipynb

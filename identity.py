@@ -69,6 +69,7 @@ class Identity:
 
         decimal_places = {
             'XAU' : '%.02f',
+            'US500' : '%.02f',
             'XAG' : '%.03f',
             'JPY' : '%.03f'
         }
