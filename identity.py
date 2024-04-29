@@ -94,7 +94,7 @@ class Identity:
         else:
             orderLeg2 = {}
         if tp and tp != 0:
-            tp_send = float('%.05f' % tp)
+            tp_send = float(rounding_amt % tp)
             orderLeg3 = {
                         "orderCode": f"{id}-3",
                         "type": "LIMIT",
