@@ -37,8 +37,10 @@ def receive_request():
         return jsonify({"message": "missing key trade details.", "details": raw_data}), 200
 
     # Parse the data into variables
-    username, password, server, account_id, symbol, action = data_list[:6]
-    order_side, quantity, trade_id, lTp, lSl, sTp, sSl = data_list[6:]
+    username, password, server, account_id, action, order_side = data_list[:6]
+    quantity, trade_id, lTp, lSl, sTp, sSl = data_list[6:]
+
+    symbol = trade_id.split('-')[1]
 
     # Convert numeric data from strings to appropriate types
     quantity = float(quantity) 
